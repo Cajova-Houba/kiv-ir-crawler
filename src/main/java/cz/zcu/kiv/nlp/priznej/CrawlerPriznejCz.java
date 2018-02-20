@@ -136,13 +136,37 @@ public class CrawlerPriznejCz {
 //            log.info(c);
 //        }
         FileOutputStream fout = null;
+        String fname= STORAGE+"\\"+ Utils.SDF.format(System.currentTimeMillis()) + "_" + confessions.size() + ".txt";
         try {
-            fout = new FileOutputStream(STORAGE+"\\"+ Utils.SDF.format(System.currentTimeMillis()) + "_" + confessions.size() + ".txt");
+            fout = new FileOutputStream(fname);
             ObjectOutputStream oos = new ObjectOutputStream(fout);
             oos.writeObject(confessions);
+            oos.close();
+            fout.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        // load serialized confessions and test print them
+        try {
+            FileInputStream fin = new FileInputStream(fname);
+            ObjectInputStream oin = new ObjectInputStream(fin);
+            List<Confession> cs = (List<Confession>) oin.readObject();
+            oin.close();
+            fin.close();
+
+            log.info(cs.size()+" confessions deserialized.");
+            for(Confession c : cs) {
+                log.info(c);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
 
