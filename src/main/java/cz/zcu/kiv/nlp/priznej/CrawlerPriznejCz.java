@@ -1,8 +1,9 @@
-package cz.zcu.kiv.nlp.vs;
+package cz.zcu.kiv.nlp.priznej;
 
 import cz.zcu.kiv.nlp.ir.AbstractHTMLDownloader;
 import cz.zcu.kiv.nlp.ir.HTMLDownloaderSelenium;
 import cz.zcu.kiv.nlp.ir.Utils;
+import cz.zcu.kiv.nlp.vs.CrawlerVSCOM;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
