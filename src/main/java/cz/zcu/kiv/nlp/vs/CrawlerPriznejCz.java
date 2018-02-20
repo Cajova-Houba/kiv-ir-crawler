@@ -29,10 +29,10 @@ public class CrawlerPriznejCz {
      * XPaths to be applied to a single post.
      */
     static {
-        xpathMap.put("postBody", "//div[@class='post-body']//td");
-//        xpathMap.put("allText", "//div[@class='oborList']/allText()");
-//        xpathMap.put("html", "//div[@class='oborList']/html()");
-//        xpathMap.put("tidyText", "//div[@class='oborList']/tidyText()");
+        xpathMap.put("postBody", "//div[@class='post-body']//td/tidyText()");
+        xpathMap.put("upvotes", "//table[@class=\"post-stats\"]//tr[1]/td/tidyText()");
+        xpathMap.put("downvotes", "//table[@class=\"post-stats\"]//tr[2]/td/tidyText()");
+        xpathMap.put("commentCount", "//div[@class=\"post-body\"]//span/tidyText()");
     }
 
     private static final String STORAGE = "./storage/PriznejCz";
@@ -86,6 +86,20 @@ public class CrawlerPriznejCz {
         urlsSet.addAll(getPostLinks(postDivIds));
         Utils.saveFile(new File(STORAGE + Utils.SDF.format(System.currentTimeMillis()) + "_links_size_" + urlsSet.size() + ".txt"),
                     urlsSet);
+
+        // load posts from links
+        for(String postLink : urlsSet) {
+            String url = SITE + postLink;
+            log.info("Processing url: "+url);
+
+            Map<String, List<String>> res = downloader.processUrl(url, xpathMap);
+            for(String key : res.keySet()) {
+                log.info("Results for Key '"+key+"':");
+                for (String s : res.get(key)) {
+                    log.info("\t"+s);
+                }
+            }
+        }
 
 //        Map<String, List<String>> products = downloader.processUrl(SITE+SITE_SUFFIX, xpathMap);
 //        for(String key : products.keySet()){
