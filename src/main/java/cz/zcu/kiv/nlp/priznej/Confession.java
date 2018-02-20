@@ -9,6 +9,11 @@ import java.io.Serializable;
 public class Confession implements Serializable {
 
     /**
+     * Id of a post (so it can be accessed later).
+     */
+    private String id;
+
+    /**
      * Confession text.
      */
     private String text;
@@ -27,6 +32,14 @@ public class Confession implements Serializable {
      * Number of confession comments.
      */
     private int commentCount;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getText() {
         return text;
@@ -63,7 +76,8 @@ public class Confession implements Serializable {
     @Override
     public String toString() {
         return "Confession{" +
-                "text='" + text + '\'' +
+                "id='" + id + '\'' +
+                ", text='" + text + '\'' +
                 ", upvotes=" + upvotes +
                 ", downvotes=" + downvotes +
                 ", commentCount=" + commentCount +

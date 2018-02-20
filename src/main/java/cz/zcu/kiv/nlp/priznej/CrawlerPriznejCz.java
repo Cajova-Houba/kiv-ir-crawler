@@ -1,15 +1,13 @@
 package cz.zcu.kiv.nlp.priznej;
 
 import cz.zcu.kiv.nlp.ir.AbstractHTMLDownloader;
-import cz.zcu.kiv.nlp.ir.HTMLDownloaderSelenium;
 import cz.zcu.kiv.nlp.ir.Utils;
 import cz.zcu.kiv.nlp.vs.CrawlerVSCOM;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import java.io.File;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,8 +48,13 @@ public class CrawlerPriznejCz {
      * Be polite and don't send requests too often.
      * Waiting period between requests. (in milisec)
      */
-    private static final int POLITENESS_INTERVAL = 1200;
+    private static final int POLITENESS_INTERVAL = 800;
     private static final Logger log = Logger.getLogger(CrawlerVSCOM.class);
+
+    /**
+     * How many pages will be scrolled before post links are obtained.
+     */
+    public static final int scrolling = 40;
 
     /**
      * Main method
@@ -70,7 +73,7 @@ public class CrawlerPriznejCz {
             }
         }
 //        HTMLDownloader downloader = new HTMLDownloader();
-        AbstractHTMLDownloader downloader = new HTMLDownloaderSelenium();
+        AbstractHTMLDownloader downloader = new HTMLStreamDownloaderSelenium(scrolling);
         Map<String, Map<String, List<String>>> results = new HashMap<String, Map<String, List<String>>>();
 
         for (String key : xpathMap.keySet()) {
@@ -89,97 +92,60 @@ public class CrawlerPriznejCz {
                     urlsSet);
 
         // load posts from links
+        log.info(urlsSet.size()+" links to posts found.");
+        List<Confession> confessions = new ArrayList<>();
         for(String postLink : urlsSet) {
             String url = SITE + postLink;
             log.info("Processing url: "+url);
 
             Map<String, List<String>> res = downloader.processUrl(url, xpathMap);
+            Confession c = new Confession();
+            c.setId(postLink.substring(postLink.length()-6,postLink.length()));
             for(String key : res.keySet()) {
-                log.info("Results for Key '"+key+"':");
-                for (String s : res.get(key)) {
-                    log.info("\t"+s);
+                List<String> data = res.get(key);
+                if(!data.isEmpty()) {
+                    String item = data.get(0);
+                    switch (key) {
+                        case "postBody" :
+                            c.setText(item);
+                            break;
+                        case "upvotes":
+                            c.setUpvotes(Integer.parseInt(item));
+                            break;
+                        case "downvotes":
+                            c.setDownvotes(Integer.parseInt(item));
+                            break;
+                        case "commentCount":
+                            c.setCommentCount(Integer.parseInt(item));
+                            break;
+                    }
                 }
+            }
+            confessions.add(c);
+
+            try {
+                Thread.sleep(POLITENESS_INTERVAL);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
 
-//        Map<String, List<String>> products = downloader.processUrl(SITE+SITE_SUFFIX, xpathMap);
-//        for(String key : products.keySet()){
-//            for(String s : products.get(key)) {
-//                log.info(s);
-//            }
+        // print downloaded confessions
+        log.info(confessions.size()+" confessions found.");
+//        for(Confession c : confessions) {
+//            log.info(c);
 //        }
+        FileOutputStream fout = null;
+        try {
+            fout = new FileOutputStream(STORAGE+"\\"+ Utils.SDF.format(System.currentTimeMillis()) + "_" + confessions.size() + ".txt");
+            ObjectOutputStream oos = new ObjectOutputStream(fout);
+            oos.writeObject(confessions);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        //Try to load links
-//        File links = new File(STORAGE + "_urls.txt");
-//        if (links.exists()) {
-//            try {
-//                List<String> lines = Utils.readTXTFile(new FileInputStream(links));
-//                for (String line : lines) {
-//                    urlsSet.add(line);
-//                }
-//            } catch (FileNotFoundException e) {
-//                e.printStackTrace();
-//            }
-//        } else {
-//
-//            int max = 200;
-//            max=6600;
-//            for (int i = 0; i < max; i = i + 100) {
-//                String link = SITE + SITE_SUFFIX + "?pgf0=" + i;
-//                urlsSet.addAll(downloader.getLinks(link, "//div[@id='skoolList']//h3/a/@href"));
-//            }
-//            Utils.saveFile(new File(STORAGE + Utils.SDF.format(System.currentTimeMillis()) + "_links_size_" + urlsSet.size() + ".txt"),
-//                    urlsSet);
-//        }
-//
-//        for (String key : results.keySet()) {
-//            File file = new File(STORAGE + "/" + Utils.SDF.format(System.currentTimeMillis()) + "_" + key + ".txt");
-//            PrintStream printStream = null;
-//            try {
-//                printStream = new PrintStream(new FileOutputStream(file));
-//            } catch (FileNotFoundException e) {
-//                e.printStackTrace();
-//            }
-//            printStreamMap.put(key, printStream);
-//        }
-//
-//        int count = 0;
-//        for (String url : urlsSet) {
-//            String link = url;
-//            if (!link.contains(SITE)) {
-//                link = SITE + url;
-//            }
-//            //Download and extract data according to xpathMap
-//            Map<String, List<String>> products = downloader.processUrl(link, xpathMap);
-//            count++;
-//            if (count % 100 == 0) {
-//                log.info(count + " / " + urlsSet.size() + " = " + count / (0.0 + urlsSet.size()) + "% done.");
-//            }
-//            for (String key : results.keySet()) {
-//                Map<String, List<String>> map = results.get(key);
-//                List<String> list = products.get(key);
-//                if (list != null) {
-//                    map.put(url, list);
-//                    log.info(Arrays.toString(list.toArray()));
-//                    //print
-//                    PrintStream printStream = printStreamMap.get(key);
-//                    for (String result : list) {
-//                        printStream.println(url + "\t" + result);
-//                    }
-//                }
-//            }
-//            try {
-//                Thread.sleep(POLITENESS_INTERVAL);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        //close print streams
-//        for (String key : results.keySet()) {
-//            PrintStream printStream = printStreamMap.get(key);
-//            printStream.close();
-//        }
 
         // Save links that failed in some way.
         // Be sure to go through these and explain why the process failed on these links.
@@ -189,13 +155,6 @@ public class CrawlerPriznejCz {
         log.info("-----------------------------");
 
 
-//        // Print some information.
-//        for (String key : results.keySet()) {
-//            Map<String, List<String>> map = results.get(key);
-//            Utils.saveFile(new File(STORAGE + "/" + Utils.SDF.format(System.currentTimeMillis()) + "_" + key + "_final.txt"),
-//                    map, idMap);
-//            log.info(key + ": " + map.size());
-//        }
         System.exit(0);
     }
 

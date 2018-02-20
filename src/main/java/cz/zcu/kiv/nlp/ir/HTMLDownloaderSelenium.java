@@ -17,7 +17,7 @@ import java.util.Map;
  */
 public class HTMLDownloaderSelenium extends AbstractHTMLDownloader {
 
-    WebDriver driver;
+    protected WebDriver driver;
 
     /**
      * Constructor
@@ -72,9 +72,17 @@ public class HTMLDownloaderSelenium extends AbstractHTMLDownloader {
      * @return list of extracted values
      */
     public List<String> getLinks(String url, String xPath) {
+        openUrl(url);
+        return getLinksInternal(url, xPath);
+    }
+
+    /**
+     * Applies xPath to driver.getPageSource().
+     * @param xPath
+     * @return
+     */
+    protected List<String> getLinksInternal(String url, String xPath) {
         ArrayList<String> list = new ArrayList<String>();
-        log.info("Processing: " + url);
-        driver.get(url);
         String dom = driver.getPageSource();
         if (dom != null) {
             Document document = Jsoup.parse(dom);
@@ -85,6 +93,15 @@ public class HTMLDownloaderSelenium extends AbstractHTMLDownloader {
             failedLinks.add(url);
         }
         return list;
+    }
+
+    /**
+     * Performs driver.get(url).
+     * @param url
+     */
+    protected void openUrl(String url) {
+        log.info("Processing: " + url);
+        driver.get(url);
     }
 }
 
