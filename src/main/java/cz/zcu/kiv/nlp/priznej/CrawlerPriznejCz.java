@@ -9,6 +9,8 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import java.io.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,6 +35,7 @@ public class CrawlerPriznejCz {
         xpathMap.put("upvotes", "//table[@class=\"post-stats\"]//tr[1]/td/tidyText()");
         xpathMap.put("downvotes", "//table[@class=\"post-stats\"]//tr[2]/td/tidyText()");
         xpathMap.put("commentCount", "//div[@class=\"post-body\"]//span/tidyText()");
+        xpathMap.put("datePosted", "//div[@class=\"post-body\"]//*//div[@class=\"authorinfo\"]//div[2]/a/tidyText()");
     }
 
     private static final String STORAGE = "./storage/PriznejCz";
@@ -55,7 +58,7 @@ public class CrawlerPriznejCz {
     /**
      * How many pages will be scrolled before post links are obtained.
      */
-    public static final int scrolling = 40;
+    public static final int scrolling = 80;
 
     /**
      * Main method
@@ -95,6 +98,7 @@ public class CrawlerPriznejCz {
         // load posts from links
         log.info(urlsSet.size()+" links to posts found.");
         List<Confession> confessions = new ArrayList<>();
+        SimpleDateFormat parser=new SimpleDateFormat("dd.MM.yyyy HH:mm");
         for(String postLink : urlsSet) {
             String url = SITE + postLink;
             log.info("Processing url: "+url);
@@ -118,6 +122,13 @@ public class CrawlerPriznejCz {
                             break;
                         case "commentCount":
                             c.setCommentCount(Integer.parseInt(item));
+                            break;
+                        case "datePosted":
+                            try {
+                                c.setDatePosted(parser.parse(item));
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
                             break;
                     }
                 }

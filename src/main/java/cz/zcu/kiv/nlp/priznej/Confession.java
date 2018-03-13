@@ -1,6 +1,7 @@
 package cz.zcu.kiv.nlp.priznej;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Simple class which represents confession.
@@ -32,6 +33,11 @@ public class Confession implements Serializable {
      * Number of confession comments.
      */
     private int commentCount;
+
+    /**
+     * When the confession was posted.
+     */
+    private Date datePosted;
 
     public String getId() {
         return id;
@@ -71,6 +77,14 @@ public class Confession implements Serializable {
 
     public void setCommentCount(int commentCount) {
         this.commentCount = commentCount;
+    }
+
+    public Date getDatePosted() {
+        return datePosted;
+    }
+
+    public void setDatePosted(Date datePosted) {
+        this.datePosted = datePosted;
     }
 
     @Override
