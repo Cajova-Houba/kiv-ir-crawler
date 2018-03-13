@@ -1,5 +1,6 @@
 package cz.zcu.kiv.nlp.priznej;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.zcu.kiv.nlp.ir.AbstractHTMLDownloader;
 import cz.zcu.kiv.nlp.ir.Utils;
 import cz.zcu.kiv.nlp.vs.CrawlerVSCOM;
@@ -135,40 +136,47 @@ public class CrawlerPriznejCz {
 //        for(Confession c : confessions) {
 //            log.info(c);
 //        }
+
+        System.out.println("Saving to json.");
         FileOutputStream fout = null;
-        String fname= STORAGE+"\\"+ Utils.SDF.format(System.currentTimeMillis()) + "_" + confessions.size() + ".txt";
+        String fname= STORAGE+"\\"+ Utils.SDF.format(System.currentTimeMillis()) + "_" + confessions.size() + ".json";
         try {
-            fout = new FileOutputStream(fname);
-            ObjectOutputStream oos = new ObjectOutputStream(fout);
-            oos.writeObject(confessions);
-            oos.close();
-            fout.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            serializeData(confessions, fname);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
-        // load serialized confessions and test print them
-        try {
-            FileInputStream fin = new FileInputStream(fname);
-            ObjectInputStream oin = new ObjectInputStream(fin);
-            List<Confession> cs = (List<Confession>) oin.readObject();
-            oin.close();
-            fin.close();
-
-            log.info(cs.size()+" confessions deserialized.");
-            for(Confession c : cs) {
-                log.info(c);
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            fout = new FileOutputStream(fname);
+//            ObjectOutputStream oos = new ObjectOutputStream(fout);
+//            oos.writeObject(confessions);
+//            oos.close();
+//            fout.close();
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//
+//        // load serialized confessions and test print them
+//        try {
+//            FileInputStream fin = new FileInputStream(fname);
+//            ObjectInputStream oin = new ObjectInputStream(fin);
+//            List<Confession> cs = (List<Confession>) oin.readObject();
+//            oin.close();
+//            fin.close();
+//
+//            log.info(cs.size()+" confessions deserialized.");
+//            for(Confession c : cs) {
+//                log.info(c);
+//            }
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (ClassNotFoundException e) {
+//            e.printStackTrace();
+//        }
 
 
         // Save links that failed in some way.
@@ -180,6 +188,16 @@ public class CrawlerPriznejCz {
 
 
         System.exit(0);
+    }
+
+    private static void serializeData(List<Confession> data, String filename) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+
+        //Object to JSON in file
+        mapper.writeValue(new File(filename), data);
+
+        //Object to JSON in String
+        String jsonInString = mapper.writeValueAsString(data);
     }
 
     /**
