@@ -14,6 +14,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import us.codecraft.xsoup.Xsoup;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -85,39 +86,7 @@ public class HTMLDownloader extends AbstractHTMLDownloader {
      * @return pairs of descriptions and extracted values
      */
     public Map<String, List<String>> processUrl(String url, Map<String, String> xpathMap) {
-        Map<String, List<String>> results = new HashMap<String, List<String>>();
-
-        log.info("Processing: " + url);
-        Page page = null;
-        try {
-            page = download(url);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (PageBiggerThanMaxSizeException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (page != null) {
-            ParseData parseData = page.getParseData();
-            if (parseData != null) {
-                if (parseData instanceof HtmlParseData) {
-                    Document document = Jsoup.parse(((HtmlParseData) parseData).getHtml());
-
-                    for (String key : xpathMap.keySet()) {
-                        ArrayList<String> list = new ArrayList<String>();
-                        list.addAll(Xsoup.compile(xpathMap.get(key)).evaluate(document).list());
-                        results.put(key, list);
-                    }
-                }
-            } else {
-                log.info("Couldn't parse the content of the page.");
-            }
-        } else {
-            log.info("Couldn't fetch the content of the page.");
-            failedLinks.add(url);
-        }
-        return results;
+        return processUrl(url, xpathMap, null);
     }
 
 
@@ -157,6 +126,46 @@ public class HTMLDownloader extends AbstractHTMLDownloader {
             failedLinks.add(url);
         }
         return list;
+    }
+
+    @Override
+    public Map<String, List<String>> processUrl(String url, Map<String, String> xpathMap, String sourceFileName) {
+        Map<String, List<String>> results = new HashMap<String, List<String>>();
+
+        log.info("Processing: " + url);
+        Page page = null;
+        try {
+            page = download(url);
+            if (sourceFileName != null) {
+                Utils.saveFile(new File(sourceFileName), page.toString());
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (PageBiggerThanMaxSizeException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (page != null) {
+            ParseData parseData = page.getParseData();
+            if (parseData != null) {
+                if (parseData instanceof HtmlParseData) {
+                    Document document = Jsoup.parse(((HtmlParseData) parseData).getHtml());
+
+                    for (String key : xpathMap.keySet()) {
+                        ArrayList<String> list = new ArrayList<String>();
+                        list.addAll(Xsoup.compile(xpathMap.get(key)).evaluate(document).list());
+                        results.put(key, list);
+                    }
+                }
+            } else {
+                log.info("Couldn't parse the content of the page.");
+            }
+        } else {
+            log.info("Couldn't fetch the content of the page.");
+            failedLinks.add(url);
+        }
+        return results;
     }
 
     @Override

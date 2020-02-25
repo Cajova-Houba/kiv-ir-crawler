@@ -31,6 +31,7 @@ public interface HTMLDownloaderInterface {
      * @return pairs of descriptions and extracted values
      */
     public Map<String, List<String>> processUrl(String url, Map<String, String> xpathMap);
+    public Map<String, List<String>> processUrl(String url, Map<String, String> xpathMap, String sourceFileName);
 
 
     /**

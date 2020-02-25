@@ -6,6 +6,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import us.codecraft.xsoup.Xsoup;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,12 +44,28 @@ public class HTMLDownloaderSelenium extends AbstractHTMLDownloader {
      * @return pairs of descriptions and extracted values
      */
     public Map<String, List<String>> processUrl(String url, Map<String, String> xpathMap) {
+        return processUrl(url, xpathMap, null);
+    }
+
+    /**
+     * Downloads given url page and extracts xpath expressions.
+     *
+     * @param url      page url
+     * @param xpathMap pairs of description and xpath expression
+     * @param sourceFileName Saves url source to this file.
+     * @return pairs of descriptions and extracted values
+     */
+    public Map<String, List<String>> processUrl(String url, Map<String, String> xpathMap, String sourceFileName) {
         Map<String, List<String>> results = new HashMap<String, List<String>>();
 
         log.info("Processing: " + url);
         driver.get(url);
         String dom = driver.getPageSource();
         if (dom != null) {
+            if (sourceFileName != null) {
+                Utils.saveFile(new File(sourceFileName), dom);
+            }
+
             Document document = Jsoup.parse(dom);
 
             for (String key : xpathMap.keySet()) {
